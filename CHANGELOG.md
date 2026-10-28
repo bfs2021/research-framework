@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The `ask` command template no longer teaches a fixed `[code | intent | domain]` Tier-2 vocabulary or a code-first ordering rule (#17). A Tier-2 entry's label is the declared `role` of the data source it came from, listed in the rendered template from the spec; a source with no declared `role` gets no label. Tier 2 follows the order of the Tier 1 notes. The two-tier structure (Principle IX) is unchanged. `DataSourceConfig` gains `role_declared` (set by the parsers; persisted in `spec-parse.json` only when `false`). (tests: `tests/agents/test_ask_role_labels.py`, `tests/vault/test_credibility.py`)
+
+### Migration notes
+
+- Existing vaults keep their old `.claude/commands/ask.md` until `regenerate-agents` re-renders it. `templates/CLAUDE.md.j2`'s citation section still uses the fixed tags and is out of scope here.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
