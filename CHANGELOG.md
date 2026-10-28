@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `_pipeline/spec-parse.json` is now keyed on the spec's content, not its modification time (#9). It records `spec_sha256` (SHA-256 of the spec file), `parser_version` (`spec.parsed.PARSER_VERSION`, bumped when the parsed shape changes) and `spec_file` (which spec produced it). One loader, `spec.parsed.load_parsed_spec(vault)`, re-parses when the cache is missing, unstamped, from another parser version, or no longer matches the spec, and writes the rebuild atomically. `onboard` step 4 no longer compares mtimes, and `prune`, `inventory`, the corpus-dir resolver, the cycle runner, quality report, claims export, `regenerate-agents`, `regenerate-shim` and the per-vault `scripts/` validators all read the parsed spec through it. (test: `tests/spec/test_parsed_spec_cache.py`, `tests/cli/test_spec_parse_readers.py`)
+- `_pipeline/spec-parse.json` is now keyed on the spec's content, not its modification time (#9). It records `spec_sha256` (SHA-256 of the spec file), `parser_version` (`spec.parsed.PARSER_VERSION`, bumped when the parsed shape changes) and `spec_file` (which spec produced it). One loader, `spec.parsed.load_parsed_spec(vault)`, re-parses when the cache is missing, unstamped, from another parser version, or no longer matches the spec, and writes the rebuild atomically. `onboard` step 4 no longer compares mtimes, and `prune`, `inventory`, the corpus-dir resolver, the cycle runner, quality report, claims export, `regenerate-agents`, `regenerate-shim` and the per-vault `scripts/` validators all read the parsed spec through it. (test: `tests/spec/test_parsed_spec_cache.py`, `tests/cli/test_spec_parse_readers.py`, `tests/spec/test_no_raw_spec_parse_reads.py`)
 
 ### Fixed
 
@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Migration notes
 
 - Existing vaults need no action: a `spec-parse.json` written before this change has no `spec_sha256` or `parser_version`, so the next command rebuilds it from the vault's spec. Hand edits to `spec-parse.json` in a vault that has a spec file are therefore overwritten; edit the spec instead. A vault with no spec file keeps its `spec-parse.json` as it is.
+- Readers are lenient, rebuild verbs are strict: if the spec does not parse (mid-edit, or invalid) a reader keeps using the last good `spec-parse.json` and logs a WARNING naming the spec file and the error, so a vault with a non-default corpus folder never falls back to `data_vault/`. `parse-spec`, `regenerate-agents`, `regenerate-shim`, `onboard` and `scaffold` fail instead. Only the cycle runner and those verbs write the cache back; every other reader (`prune`, `inventory`, the corpus resolver, claims export, the `scripts/` validators) leaves the vault untouched and re-parses in memory.
+- The loader no longer globs for `*-spec.md`: it probes `<vault-name>-spec.md`, then `research.spec.md` (`onboard` still accepts a hand-named spec and records it in the cache).
 
 ## [1.0.1] - 2026-10-12
 
