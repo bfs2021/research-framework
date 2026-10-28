@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from .._assets import asset_path
 from ..pipeline.abstraction import resolve_forbidden_filename_prefixes
+from ..pipeline.archived import sync_archived_notice
 from ..spec.schema import SpecConfig
 
 
@@ -163,6 +164,10 @@ def render_all(
         encoding="utf-8",
     )
     update_script.chmod(update_script.stat().st_mode | 0o755)
+
+    # Issue #26: an archived vault's agent instructions say so. Same function
+    # `regenerate-agents` uses, so a fresh render and a synced one agree.
+    sync_archived_notice(vault_dir)
 
     # Index files (Layer 1 skeletons — populated later by indexer)
     (vault_dir / "_index.md").write_text(
