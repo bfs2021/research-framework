@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `_pipeline/spec-parse.json` is now keyed on the spec's content, not its modification time (#9). It records `spec_sha256` (SHA-256 of the spec file), `parser_version` (`spec.parsed.PARSER_VERSION`, bumped when the parsed shape changes) and `spec_file` (which spec produced it). One loader, `spec.parsed.load_parsed_spec(vault)`, re-parses when the cache is missing, unstamped, from another parser version, or no longer matches the spec, and writes the rebuild atomically. `onboard` step 4 no longer compares mtimes, and `prune`, `inventory`, the corpus-dir resolver, the cycle runner, quality report, claims export, `regenerate-agents`, `regenerate-shim` and the per-vault `scripts/` validators all read the parsed spec through it. (test: `tests/spec/test_parsed_spec_cache.py`, `tests/cli/test_spec_parse_readers.py`)
+
+### Fixed
+
+- `onboard` skipped re-parsing a spec that had changed whenever `spec-parse.json` looked newer (checkout, copy, restore, clock skew), and `prune` and `inventory` read the cache without checking it at all, so they could act on a stale `vault_corpus_dir` or vault name (#9). (test: `tests/cli/test_spec_parse_readers.py`)
+
+### Migration notes
+
+- Existing vaults need no action: a `spec-parse.json` written before this change has no `spec_sha256` or `parser_version`, so the next command rebuilds it from the vault's spec. Hand edits to `spec-parse.json` in a vault that has a spec file are therefore overwritten; edit the spec instead. A vault with no spec file keeps its `spec-parse.json` as it is.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
