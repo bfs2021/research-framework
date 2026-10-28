@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Migration notes
 
-- Existing vaults keep their old `.claude/commands/ask.md` until `regenerate-agents` re-renders it. `templates/CLAUDE.md.j2`'s citation section still uses the fixed tags and is out of scope here.
+- Existing vaults keep their old `.claude/commands/ask.md` until `regenerate-agents` re-renders it. `regenerate-agents` also re-parses the spec; a `_pipeline/spec-parse.json` written before this change records every `role` as declared, so a vault whose spec fails to parse should be re-parsed first (`parse-spec`) or its old cache will keep labelling sources with the parser defaults.
+- `CLAUDE.md`'s Citation Format section, `research.md` and `vault-config.yaml` no longer teach `[code]/[intent]/[domain]` either; they take the same role list. The `source_urls` parser now also strips a free-form leading label with spaces or capitals (`[Home cooking] https://…`).
 
 ## [1.0.1] - 2026-10-12
 
