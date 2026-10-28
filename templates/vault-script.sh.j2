@@ -327,9 +327,14 @@ from pathlib import Path
 
 from research_framework.pipeline import vault_update
 
-changed = vault_update.sync_vault_scripts(Path(os.environ["RV_UPDATE_VAULT"]))
+vault = Path(os.environ["RV_UPDATE_VAULT"])
+changed = vault_update.sync_vault_scripts(vault)
 if changed:
     print(f"[update] refreshed {len(changed)} vault script(s): {', '.join(changed)}")
+# Issue #26: an archived vault's agent instructions say so (and stop saying so
+# once it is un-archived). Only the marked notice blocks are touched.
+for path in vault_update.sync_agent_notice(vault):
+    print(f"[update] synced archived notice in {path.name}")
 RVSYNC
     # A git archive of the repo carries the MAINTAINER dev-setup install.sh at
     # its root (it runs `pip install -e` and would try to pip-install this
