@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- `--force-budget` and its `RF_FORCE_BUDGET_ACK` headless acknowledgement (#14). A run over its cap already stops before dispatch; resuming a `BUDGET_PAUSED` vault that is still over now always refuses, in TTY and headless alike, and the message names the setting to raise (`limits.cycle_budget_usd`, `limits.codex_token_budget` or `limits.cycle_wallclock_budget_minutes`, per the pause reason). Every verb rejects `--force-budget` with exit `2` and a message naming what to raise (`--max-usd` / `pipeline.budget_usd` for the run-wide dollar cap), for one release. (test: `tests/cli/test_force_budget_retired.py`)
+
+### Migration notes
+
+- Scripts passing `--force-budget` (with or without `RF_FORCE_BUDGET_ACK=1`) must instead raise the capped limit in the vault's `settings.yaml` and then run `generate --resume`. `--approve` / `--approve-all` / `--reject` are unchanged.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
