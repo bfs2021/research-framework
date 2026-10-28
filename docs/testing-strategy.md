@@ -58,7 +58,7 @@ pytest -m e2e              # tier-5/6 e2e only
 ruff check .               # lint baseline (must be zero)
 ```
 
-<!-- test-count: not_e2e=4312 total=4342 e2e_only=30 refreshed=2026-10-12 -->
+<!-- test-count: not_e2e=4322 total=4352 e2e_only=30 refreshed=2026-10-28 -->
 **This is the one place in the repo a test count is committed** — every
 other doc that mentions a count (README, CLAUDE.md, CONTRIBUTING.md,
 ARCHITECTURE.md, `docs/RELEASE.md`) points here instead of quoting its
