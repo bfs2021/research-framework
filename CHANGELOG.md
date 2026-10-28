@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `archived: true` (spec 071) is now enforced on every verb that writes research content, not only `./vault research` / `generate` (#26). `research-framework cycle` (and any direct `run_single_cycle` call), `pipeline <vault> full|collect|extract|scout|resume|finish` (and `pipeline.runner.run_*`) and `generate --regenerate-plan-only` refuse with exit 2 and the spec-071 message before any side effect; read, query and maintenance verbs (and `pipeline status` / `prune-runs`) are unchanged. The refusal text now lives in one place, `pipeline/archived.py`. `ask --escalate` (#15) runs through `cycle` and inherits the guard. (tests: `tests/pipeline/test_archived_enforcement.py`)
+- `./vault status` now says when a vault is archived: an `ARCHIVED` line leads the text output and the `--json` object gains `"archived"`. (test: `tests/cli/test_status_archived.py`)
+- An archived vault's `CLAUDE.md`, `AGENTS.md` and `/research` command now carry a marked notice telling an interactive agent not to write or edit research notes and how to reverse it (`archived: false`). `regenerate-agents` adds or removes the notice on an existing vault, idempotently, leaving text outside the markers untouched. (test: `tests/agents/test_archived_notice.py`)
+
+### Migration notes
+
+- Spec 071 gains an amendment (issue #26) extending the refused-verb list; no setting changes.
+- Existing archived vaults: run `research-framework regenerate-agents <vault> --force` once to add the agent notice to `CLAUDE.md`, `AGENTS.md` and `.claude/commands/research.md`. Run it again after setting `archived: false` to remove it. Without it the verbs are still refused; only the agent-facing text is missing.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
