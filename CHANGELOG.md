@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `settings.yaml` keys that nothing recognises are now reported on load, with the dotted path and the closest known key (`pipeline.note_writer_batch_sise` -> did you mean `pipeline.note_writer_batch_size`?), as an `UnknownSettingsKeyWarning` once per process (#8). The key is still kept in `extras`, so a vault written for a newer framework loads as before. Stage names, tier labels and the entries of `limits.tier_thresholds` / `limits.estimator_calibration` are the operator's to choose and are never reported. (test: `tests/pipeline/test_settings_unknown_keys.py`)
-- `strict_settings: true` (default `false`) makes `./vault research` / `generate --resume` refuse to start, exit 2, while `settings.yaml` carries an unknown key. The flag is read from the raw file, so it holds even when the rest of the file fails validation. (test: `tests/pipeline/test_settings_unknown_keys.py`)
+- `settings.yaml` keys that nothing recognises are now reported on load, with the dotted path and the closest known key (`pipeline.note_writer_batch_sise` -> did you mean `pipeline.note_writer_batch_size`?), as an `UnknownSettingsKeyWarning` (#8), reported before validation so that a typo in a required key (`pipeline.max_cylces`) names the key meant, in the warning and in the resulting `SettingsError`. The warnings module's own dedupe keeps it to one line per key per process. The key is still kept in `extras`, so a vault written for a newer framework loads as before. Stage names, tier labels and the entries of `limits.tier_thresholds` / `limits.estimator_calibration` are the operator's to choose and are never reported. (test: `tests/pipeline/test_settings_unknown_keys.py`)
+- `strict_settings: true` (default `false`) makes a run refuse to start, exit 2, while `settings.yaml` carries an unknown key. One shared check, `strict_settings_refusal`, backs it, and it runs before any side effect in: every `generate` run and `generate --resume` / `./vault research`, `cycle`, and `pipeline full|collect|extract|scout|resume|finish`. Not covered: `cycle --estimate-only` and `pipeline status|prune-runs` (they dispatch nothing), and the shim verbs that call an agent directly (`ask`, `write`). The flag is read from the raw file, so it holds even when the rest of the file fails validation. (tests: `tests/pipeline/test_settings_unknown_keys.py`, `tests/cli/test_strict_settings_verbs.py`)
 
 ### Changed
 
-- Spec 076 records the unknown-key contract (FR-022 to FR-024), the `vault_commit`, `cycles` and `default_executor` keys the schema tables had left out, and the dead keys found while building the register (D1 addendum, D7, D8).
+- The quality fixtures' `settings.yaml` (and the bootstrap that writes them) no longer carry the `cycle.runner` and `budget` blocks; nothing reads them, and they were reported as unknown keys.
+- Spec 076 records the unknown-key contract (FR-022 to FR-025), the `vault_commit`, `cycles` and `default_executor` keys the schema tables had left out, and the dead keys found while building the register (D1 addendum, U1, U2).
 
 ### Migration notes
 
