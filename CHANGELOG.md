@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Every stage prompt is self-contained and rendered from package resources (#12). The verifier prompt told the agent to apply `.agents/skills/verifier/SKILL.md` and the topic-propose prompt told it to "run the 'topic-propose' skill"; a generated vault holds no skill files and not every runtime loads them, so both arrived without their rules. They now inline the skill's instructions from the installed package (`_assets.skill_instructions`), as the research-plan narrator already did, and a `SKILL.md` planted in a vault changes no prompt. The SG-003 correction hint no longer points the scout at a skill step. (test: `tests/pipeline/test_stage_prompts_self_contained.py`, `tests/pipeline/test_gates_step_sg003.py::TestSG003TopicAbstractionCheck::test_correction_hint_points_at_no_skill_file`)
+
+### Removed
+
+- `research-framework check-skills`, the cycle's skill-file preflight and its `_pipeline/cycle-NNN-skill-check.json` sidecar, the cycle summary's "Preflight" section, and `install.sh`'s `check-skills` step (#12). With no skill files in a vault there is nothing to validate or restore. `check-skills` now fails as an unknown verb (exit 2). (test: `tests/cli/test_build_parser_stable.py::test_check_skills_is_gone`, `tests/pipeline/test_full_cycle_e2e.py::test_a_vault_skill_file_is_neither_read_nor_repaired_by_a_cycle`, `tests/generator/test_integration.py::test_generate_dry_run_end_to_end`)
+
+### Migration notes
+
+- Nothing is required. `./vault update` leaves any `.agents/skills/` in an existing vault untouched — nothing reads it any more, and the framework cannot tell a copy it wrote from one you edited. Delete it if you like; if the vault directory is also the unpacked release bundle, keep `.agents/skills/vault-spec/`, which `install.sh` reads. Drop `check-skills` from any script that calls it. (test: `tests/pipeline/test_vault_update_script_sync.py::test_update_leaves_existing_vault_skill_files_alone`)
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
@@ -1364,9 +1376,8 @@ this block; the private commit history is not carried over, and its versions
   below it passed unchecked. The frontmatter now closes at a `---` line, read
   by a new `vault.frontmatter.split_frontmatter` helper for the readers that
   must not raise on malformed YAML. (regression test:
-  `tests/pipeline/test_skill_check.py::test_a_skill_with_dashes_in_a_value_is_not_overwritten_from_the_bundle`,
-  `::test_broken_yaml_below_dashes_in_a_value_is_still_flagged`,
-  `tests/vault/test_frontmatter.py::test_split_does_not_end_the_frontmatter_at_dashes_inside_a_line`)
+  `tests/vault/test_frontmatter.py::test_split_does_not_end_the_frontmatter_at_dashes_inside_a_line`,
+  the preflight's own tests were removed with it in #12)
 
 - **A finished note with `---` inside a frontmatter value is no longer a stub
   every cycle.** `pipeline/stubs.py` split on the first `---` substring, so a
