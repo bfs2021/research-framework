@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `./vault ask --escalate "<question>"` and the `research-framework ask --vault <v> [--escalate] <question>` verb it forwards to (#15). The question is answered once through the vault's own `/ask` command (`agent_call.py --stage ask`; prompt, answer, log and cost sidecar under `_pipeline/ask/<timestamp>/`). If the answer reports an in-scope gap, `--escalate` runs one `cycle --target-topics <topic>` at the next cycle number under the vault's budget ladder (`pipeline.budget_usd`, `limits.cycle_budget_usd`, standing pause markers, and the `pipeline.max_cycles` ceiling), then asks again. Without `--escalate`, `ask` never starts a run. The topic is recorded only by the spec-073 append. (test: `tests/cli/test_ask_verb.py`, `tests/pipeline/test_ask_escalation.py`, `tests/cli/test_vault_shim_ask_escalate.py`)
+
+### Changed
+
+- The `/ask` command no longer tells the agent to run `research-framework cycle ... --budget-cap 2.0` itself. When the vault cannot answer, the agent ends its reply with one `VAULT-GAP: {"topic": "...", "in_scope": true|false}` line, and the framework reads that line. `/research` no longer names `/pipeline resume`. Neither rendered command names a framework command now. (test: `tests/generator/test_ask_command_gap_contract.py`)
+
+### Migration notes
+
+- `.claude/commands/ask.md` belongs to the vault and `./vault update` does not rewrite it. An existing vault keeps the old instruction to start a cycle until you refresh it: `research-framework regenerate-agents <vault> --agent ask --agent research`. `ask --escalate` refuses to dispatch an `ask.md` that has no `VAULT-GAP:` contract.
+- Run `./vault regenerate-shim` (add `--force` if the shim is reported `customized`/`unverified`) to get `--escalate` in the `ask` arm.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
