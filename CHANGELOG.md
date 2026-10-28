@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Note templates are rendered once, at the vault root (#20). `generator.templates.render_note_type_templates` is the single renderer of `_templates/<type>.md` and the version registry `_templates/CHANGELOG.md`; scaffold and `./vault update` always re-render them, so a section added to the spec reaches a vault scaffolded earlier. The registry is merged, not replaced: a new or bumped `template_version` rewrites its table row and appends a history entry, and hand-written history is kept. Scaffold no longer writes the second, section-only skeleton to `<corpus>/_templates/<type>.md`. `scripts/check_template_compliance.py` and `quality.metrics.resolve_template_path` read the root templates only; `verify` looks there first. (test: `tests/generator/test_root_note_templates.py`, `tests/cli/test_vault_update.py::test_update_rerenders_root_templates_and_removes_corpus_copies`)
+
+### Removed
+
+- `<corpus>/_templates/<type>.md`, the section-only skeletons older scaffolds wrote. `./vault update` and a re-scaffold delete a file there only when its text is exactly what that writer produced for a note type in the spec; your own files, and edited ones, stay, and so does the directory if it is not empty. (test: `tests/generator/test_root_note_templates.py::test_remove_legacy_deletes_framework_written_and_keeps_operator_files`)
+
+### Migration notes
+
+- **Edits to `<vault>/_templates/<type>.md` are overwritten** on the next `./vault update` or re-scaffold: these files are now framework-owned. Put a lasting change in `research.spec.md` (`note_types[].required_sections`, `contextual_questions`, `template_version`), not in the rendered file. `_templates/CHANGELOG.md` keeps its hand-written Version History.
+- **Your shim must be refreshed once.** The re-render and clean-up run from `./vault update`'s own script, which a vault's existing `vault` shim does not contain: run `./vault regenerate-shim` (then `./vault update`) to get them. A vault whose shim you have customised needs the new `RVTMPL` block copied across by hand from `templates/vault-script.sh.j2`.
+- **A corpus-level template you edited is left in place** but no longer read by `check_template_compliance.py` or the quality metrics (and `verify` only falls back to it); fold its sections into the spec and delete it.
+
 ## [1.0.1] - 2026-10-12
 
 ### Fixed
